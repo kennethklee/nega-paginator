@@ -32,9 +32,12 @@ Custom property | Description | Default
  * @polymer
  * @demo demo/index.html
  */
-class NegaPaginator extends Polymer.Element {
+import { PolymerElement } from '@polymer/polymer/polymer-element.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+
+class NegaPaginator extends PolymerElement {
   static get template() {
-    return Polymer.html`
+    return html`
     <style>
       :host {
         display: block;
