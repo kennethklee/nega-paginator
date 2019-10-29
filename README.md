@@ -2,7 +2,7 @@
 
 [![Published on webcomponents.org](https://img.shields.io/badge/webcomponents.org-published-blue.svg)](https://www.webcomponents.org/element/kennethklee/nega-paginator)
 
-`nega-paginator` is a paginator for Polymer.
+`nega-paginator` is a simple paginator web component.
 
 Example:
 

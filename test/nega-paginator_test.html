@@ -6,8 +6,11 @@
 
     <title>nega-paginator test</title>
 
-    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
-    <script src="../../web-component-tester/browser.js"></script>
+    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../node_modules/@polymer/test-fixture/test-fixture.js"></script>
+    <script src="../node_modules/mocha/mocha.js"></script>
+    <script src="../node_modules/chai/chai.js"></script>
+    <script src="../node_modules/wct-mocha/wct-mocha.js"></script>
 
     <script type="module" src="../nega-paginator.js"></script>
   </head>
@@ -26,7 +29,7 @@
 
     <test-fixture id="SmallTestFixture">
       <template>
-        <nega-paginator page="2" page-size="10" total="20"></nega-paginator>
+        <nega-paginator page-size="10" total="20"></nega-paginator>
       </template>
     </test-fixture>
 
@@ -43,129 +46,131 @@
     </test-fixture>
 
     <script type="module">
-import '../nega-paginator.js';
-suite('nega-paginator', () => {
-  test('instantiating the element with default properties works', () => {
-    const element = fixture('BasicTestFixture');
-    assert.equal(element.page, 1);
-    const elementShadowRoot = element.shadowRoot;
+      describe('nega-paginator', () => {
+        it('should instantiate the element with default properties', () => {
+          const element = fixture('BasicTestFixture')
+          assert.equal(element.page, 1)
+          assert.equal(element.pageSize, 10)
+        })
 
-    // Default properties does not show numbers
-    const buttonElementList = elementShadowRoot.querySelectorAll('paper-button');
-    const buttonElementDisabledList = elementShadowRoot.querySelectorAll('paper-button[disabled]');
-    const buttonElementHiddenList = elementShadowRoot.querySelectorAll('paper-button[hidden]');
-    
-    assert.equal(buttonElementList.length, 9);
-    assert.equal(buttonElementDisabledList.length, 2);
-    assert.equal(buttonElementHiddenList.length, 5);
-  });
+        it('should have no pages, first and last buttons disabled, and next and previous buttons active', async () => {
+          const element = fixture('BasicTestFixture')
+          
+          await element.updateComplete
 
-  test('paginating default element properly disables first and last buttons', () => {
-    const element = fixture('BasicTestFixture');
-    const elementShadowRoot = element.shadowRoot;
-    // First and last should be disabled
-    assert.equal(elementShadowRoot.querySelectorAll('paper-button[disabled]').length, 2);
-    assert.equal(elementShadowRoot.querySelectorAll('paper-button[disabled] iron-icon')[0].icon, 'icons:first-page');
-    assert.equal(elementShadowRoot.querySelectorAll('paper-button[disabled] iron-icon')[1].icon, 'icons:last-page');
+          // Default properties does not show numbers
+          const buttonElementList = element.shadowRoot.querySelectorAll('button')
+          const buttonElementDisabledList = element.shadowRoot.querySelectorAll('button[disabled]')
+          
+          assert.equal(buttonElementList.length, 4)
+          assert.equal(buttonElementDisabledList.length, 2)
 
-    // Last should continue to be disabled
-    element.nextPage();
-    assert.equal(element.page, 2);
-    assert.equal(elementShadowRoot.querySelectorAll('paper-button[disabled]').length, 1);
-    assert.equal(elementShadowRoot.querySelector('paper-button[disabled] iron-icon').icon, 'icons:last-page');
+          assert.equal(buttonElementDisabledList[0].innerText, '|<')
+          assert.equal(buttonElementDisabledList[1].innerText, '>|')
+        })
 
-    element.nextPage();
-    element.nextPage();
-    element.nextPage();
-    assert.equal(element.page, 5);
-    assert.equal(elementShadowRoot.querySelectorAll('paper-button[disabled]').length, 1);
-    assert.equal(elementShadowRoot.querySelector('paper-button[disabled] iron-icon').icon, 'icons:last-page');
+        it('should paginate once', async () => {
+          let done
+          const element = fixture('BasicTestFixture')
+          await element.updateComplete
+          
+          element.onchange = async function (ev) {
+            element.onchange = null
+            assert.equal(ev.detail.value, 2)
+            
+            // Ensure first page button becomes active
+            await element.updateComplete
+            assert.equal(element.shadowRoot.querySelector('button').disabled, false)
+            
+            done()
+          }
 
-    // First and last should again be disabled
-    element.firstPage();
-    assert.equal(element.page, 1);
-    assert.equal(elementShadowRoot.querySelectorAll('paper-button[disabled]').length, 2);
+          element.changePage(2)
 
-    // Cannot go past first page
-    element.prevPage();
-    assert.equal(element.page, 1);
-  });
+          await new Promise(res => {done = res})
+        });
 
-  test('total property on the element shows all buttons', () => {
-    const element = fixture('TotalTestFixture');
-    assert.equal(element.total, 100);
-    const elementShadowRoot = element.shadowRoot;
+        it('should shows all buttons when total is known', async () => {
+          const element = fixture('TotalTestFixture')
+          assert.equal(element.page, 1)
+          assert.equal(element.total, 100)
 
-    // Should show all numbers
-    const buttonElementList = elementShadowRoot.querySelectorAll('paper-button');
-    const buttonElementDisabledList = elementShadowRoot.querySelectorAll('paper-button[disabled]');
-    const buttonElementHiddenList = elementShadowRoot.querySelectorAll('paper-button[hidden]');
-    const buttonElementActiveList = elementShadowRoot.querySelectorAll('paper-button[class=active]');
-    
-    assert.equal(buttonElementList.length, 9);
-    assert.equal(buttonElementDisabledList.length, 2);  // First and prev buttons are disabled
-    assert.equal(buttonElementHiddenList.length, 0);
-    assert.equal(buttonElementActiveList.length, 1);
-    assert.equal(buttonElementActiveList[0].innerText, 1)
-  });
+          await element.updateComplete
 
-  test('paginating element with total property properly disables first, prev, next, and last buttons', () => {
-    const element = fixture('TotalTestFixture');
-    assert.equal(element.page, 1);
-    const elementShadowRoot = element.shadowRoot;
+          // Should show all numbers
+          const buttonElementList = element.shadowRoot.querySelectorAll('button')
+          const buttonElementDisabledList = element.shadowRoot.querySelectorAll('button[disabled]')
+          const buttonElementActive = element.shadowRoot.querySelector('button[class=active]')
+          
+          assert.equal(buttonElementList.length, 9)
 
-    // First and prev should be disabled
-    assert.equal(elementShadowRoot.querySelectorAll('paper-button[disabled]').length, 2);
-    assert.equal(elementShadowRoot.querySelectorAll('paper-button[disabled] iron-icon')[0].icon, 'icons:first-page');
-    assert.equal(elementShadowRoot.querySelectorAll('paper-button[disabled] iron-icon')[1].icon, 'icons:chevron-left');
+          // First and prev buttons are disabled
+          assert.equal(buttonElementDisabledList.length, 2)
+          assert.equal(buttonElementDisabledList[0].innerText, '|<')
+          assert.equal(buttonElementDisabledList[1].innerText, '<')
 
-    // Cannot go past first page
-    element.prevPage();
-    assert.equal(element.page, 1);
+          assert.equal(buttonElementActive.innerText, 1)
+        })
 
-    // In between pages should have no buttons disabled
-    element.nextPage();
-    assert.equal(elementShadowRoot.querySelectorAll('paper-button[disabled]').length, 0);
+        it('should not go past first page', () => {
+          const element = fixture('TotalTestFixture')
+          assert.equal(element.page, element.previousPage)
+          element.changePage(0)
+          assert.equal(element.page, 1)
+        })
 
-    // Next and last should be disabled
-    element.lastPage();
-    assert.equal(element.page, 10);
-    assert.equal(elementShadowRoot.querySelectorAll('paper-button[disabled]').length, 2);
-    assert.equal(elementShadowRoot.querySelectorAll('paper-button[disabled] iron-icon')[0].icon, 'icons:chevron-right');
-    assert.equal(elementShadowRoot.querySelectorAll('paper-button[disabled] iron-icon')[1].icon, 'icons:last-page');
+        it('should have no disabled buttons when in between pages', async () => {
+          const element = fixture('TotalTestFixture')
+          element.changePage(2)
+          await element.updateComplete
 
-    // Cannot go past last page
-    element.nextPage();
-    assert.equal(element.page, 10);
+          assert.equal(element.shadowRoot.querySelectorAll('button[disabled]').length, 0)
+        })
 
-    // In between pages should have no buttons disabled
-    element.prevPage();
-    assert.equal(elementShadowRoot.querySelectorAll('paper-button[disabled]').length, 0);
-  });
+        it('should have next and last buttons disabled when on last page', async () => {
+          const element = fixture('TotalTestFixture')
+          element.changePage(element.lastPage)
+          await element.updateComplete
 
-  test('small total property on the element shows limited buttons', () => {
-    const element = fixture('SmallTestFixture');
-    assert.equal(element.page, 2);
-    const elementShadowRoot = element.shadowRoot;
+          const buttonElementDisabledList = element.shadowRoot.querySelectorAll('button[disabled]')
+          assert.equal(buttonElementDisabledList.length, 2)
+          assert.equal(buttonElementDisabledList[0].innerText, '>')
+          assert.equal(buttonElementDisabledList[1].innerText, '>|')
+        })
 
-    // Should show first two numbers, rest of numbers hidden
-    const buttonElementHiddenList = elementShadowRoot.querySelectorAll('paper-button[hidden]');
-    const buttonElementActiveList = elementShadowRoot.querySelectorAll('paper-button[class=active]');
+        it('cannot go past last page', async () => {
+          const element = fixture('TotalTestFixture')
+          element.changePage(element.lastPage + 1)
+          assert.equal(element.page, element.lastPage)
+        });
 
-    assert.equal(buttonElementHiddenList.length, 3);
-    assert.equal(buttonElementActiveList[0].innerText, 2)
-  });
+        it('small total property on the element shows limited buttons', async () => {
+          const element = fixture('SmallTestFixture')
+          assert.equal(element.page, 1)
 
-  test('out of range `page` property on the element clamps `page`', () => {
-    const element = fixture('OutOfRangeTestFixture');
-    assert.equal(element.page, 1);
-  });
+          await element.updateComplete
 
-  test('invalid `page` property on the element defaults `page`', () => {
-    const element = fixture('InvalidTestFixture');
-    assert.equal(element.page, 1);
-  });
-});
-</script>
+          const buttonElementList = element.shadowRoot.querySelectorAll('button')
+          const buttonElementActive = element.shadowRoot.querySelector('button[class=active]')
+
+          assert.equal(buttonElementList.length, 4 + 2) // 4 default (first, prev, next, last) + 2 pages
+          assert.equal(buttonElementActive.innerText, 1)
+        })
+
+        it('out of range `page` property on the element clamps `page`', async () => {
+          const element = fixture('OutOfRangeTestFixture')
+
+          await element.updateComplete
+          assert.equal(element.page, 1)
+        });
+
+        it('invalid `page` property on the element defaults `page`', async () => {
+          const element = fixture('InvalidTestFixture')
+
+          await element.updateComplete
+          assert.equal(element.page, 1)
+        });
+      });
+      </script>
   </body>
 </html>

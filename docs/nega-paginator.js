@@ -21,28 +21,29 @@
  @element nega-paginator
  @demo demo/index.html
  */
-
-import {LitElement, html} from 'lit-element';
-
+import { LitElement, html } from "./node_modules/lit-element/lit-element.js";
 /**
 * Helper: Inclusive range array.
 */
-function __range(min, max) {
-  let results = []
-  for (let i = min; i <= max; i++) {
-    results.push(i)
-  }
-  return results
-}
 
+function __range(min, max) {
+  let results = [];
+
+  for (let i = min; i <= max; i++) {
+    results.push(i);
+  }
+
+  return results;
+}
 /**
 * Helper: Clamp number between a min and max. Also handle NaN.
 */
+
+
 function __clamp(x, min, max) {
   if (isNaN(min) || isNaN(max)) return x;
-  return Math.max(min, Math.min(max, x))
+  return Math.max(min, Math.min(max, x));
 }
-
 /**
  * `nega-paginator`
  * A simple paginator web component.
@@ -50,31 +51,43 @@ function __clamp(x, min, max) {
  * @customElement
  * @demo demo/index.html
  */
+
+
 class NegaPaginator extends LitElement {
   static get properties() {
     return {
-      page: {type: Number, reflect: true},
-      pageSize: {type: Number},
-      total: {type: Number},
-      pagePadding: {type: Number},
-    }
+      page: {
+        type: Number,
+        reflect: true
+      },
+      pageSize: {
+        type: Number
+      },
+      total: {
+        type: Number
+      },
+      pagePadding: {
+        type: Number
+      }
+    };
   }
 
   constructor() {
-    super()
-    this.page = 1
-    this.pageSize = 10
-    this.pagePadding = 2
+    super();
+    this.page = 1;
+    this.pageSize = 10;
+    this.pagePadding = 2;
   }
-  
+
   render() {
     // Cache computed
-    let previousPage = this.previousPage
-    let nextPage = this.nextPage
-    let lastPage = this.lastPage
+    let previousPage = this.previousPage;
+    let nextPage = this.nextPage;
+    let lastPage = this.lastPage;
 
-    let centroid = __clamp(this.page, 1 + this.pagePadding, lastPage - this.pagePadding)
-    let pageList = __range(Math.max(1, centroid - this.pagePadding), Math.min(lastPage, centroid + this.pagePadding))
+    let centroid = __clamp(this.page, 1 + this.pagePadding, lastPage - this.pagePadding);
+
+    let pageList = __range(Math.max(1, centroid - this.pagePadding), Math.min(lastPage, centroid + this.pagePadding));
 
     return html`
     <style>
@@ -116,29 +129,30 @@ class NegaPaginator extends LitElement {
     `)}
     <button ?disabled=${this._computeIsDisabled(this.page, nextPage)} @click=${_ => this.changePage(nextPage)}>&gt;</iron-icon></button>
     <button ?disabled=${this._computeIsDisabled(this.page, lastPage)} @click=${_ => this.changePage(lastPage)}>&gt;|</button>
-    `
+    `;
   }
 
   updated(changed) {
     if (changed.has('page')) {
       // Handle errors
-      let clampedPage = this.page && __clamp(this.page, 1, this.lastPage) || 1
+      let clampedPage = this.page && __clamp(this.page, 1, this.lastPage) || 1;
+
       if (this.page !== clampedPage) {
-        this.page = clampedPage
+        this.page = clampedPage;
       }
     }
   }
 
   get lastPage() {
-    return Math.ceil(this.total / this.pageSize)
+    return Math.ceil(this.total / this.pageSize);
   }
 
   get nextPage() {
-    return __clamp(this.page + 1, 1, this.lastPage)
+    return __clamp(this.page + 1, 1, this.lastPage);
   }
 
   get previousPage() {
-    return __clamp(this.page - 1, 1, this.lastPage)
+    return __clamp(this.page - 1, 1, this.lastPage);
   }
 
   get value() {
@@ -146,20 +160,28 @@ class NegaPaginator extends LitElement {
   }
 
   set value(page) {
-    this.changePage(page)
+    this.changePage(page);
   }
 
   _computeIsDisabled(page, checkPage) {
-    return isNaN(checkPage) || page === checkPage
+    return isNaN(checkPage) || page === checkPage;
   }
 
   changePage(page) {
-    page = page && __clamp(page, 1, this.lastPage) || 1
+    page = page && __clamp(page, 1, this.lastPage) || 1;
+
     if (this.page !== page) {
-      this.page = page
-  
-      this.dispatchEvent(new CustomEvent('change', {detail: {value: this.page}, composed: true, bubbles: true}))
+      this.page = page;
+      this.dispatchEvent(new CustomEvent('change', {
+        detail: {
+          value: this.page
+        },
+        composed: true,
+        bubbles: true
+      }));
     }
   }
+
 }
-window.customElements.define('nega-paginator', NegaPaginator)
+
+window.customElements.define('nega-paginator', NegaPaginator);
