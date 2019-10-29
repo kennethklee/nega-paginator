@@ -6,7 +6,7 @@
   },
   "homepage": "https://github.com/kennethklee/nega-paginator#readme",
   "name": "nega-paginator",
-  "version": "2.0.6",
+  "version": "2.1.0",
   "main": "index.js",
   "scripts": {
     "start": "polymer serve --npm -H 0",
