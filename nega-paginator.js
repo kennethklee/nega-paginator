@@ -1,206 +1,165 @@
 /**
-A simple paginator for Polymer. There are two types of pagination: basic, and page list. The page list has 3 page buttons shown, while basic has no page list. Just the basic first, next, and prev buttons.
+ 
+ A simple paginator web component. There are two types of pagination: basic, and page list. The page list has 3 page buttons shown, while basic has no page list. Just the basic first, next, and prev buttons.
+ 
+ Example:
+ 
+ ```
+ Basic pagination: <nega-paginator page="1"></nega-paginator>
+ 
+ Pagination with page list: <nega-paginator page="1" page-size="10" total="100"></nega-paginator>
+ ```
+ 
+ The following custom properties and mixins are also available for styling:
+ Custom property | Description | Default
+ ----------------|-------------|----------
+ `--nega-paginator` | Mixin applied to the paginator | `{}`
+ `--nega-paginator-button` | Mixin applied to the buttons. | `{}`
+ `--nega-paginator-active-button` | Mixin applied to the active button. | `{}`
+ `--nega-paginator-disabled-button` | Mixin applied to the disabled button. | `{}`
+ 
+ @element nega-paginator
+ @demo demo/index.html
+ */
 
-Example:
+import {LitElement, html} from 'lit-element';
 
-```
-Basic pagination: <nega-paginator page="1"></nega-paginator>
-
-Pagination with page list: <nega-paginator page="1" page-size="10" total="100"></nega-paginator>
-```
-
-The following custom properties and mixins are also available for styling:
-Custom property | Description | Default
-----------------|-------------|----------
-`--nega-paginator` | Mixin applied to the paginator | `{}`
-`--nega-paginator-button` | Mixin applied to the buttons. | `{}`
-`--nega-paginator-active-button` | Mixin applied to the active button. | `{}`
-
-@element nega-paginator
-@demo demo/index.html
+/**
+* Helper: Inclusive range array.
 */
-/*
-  FIXME(polymer-modulizer): the above comments were extracted
-  from HTML and may be out of place here. Review them and
-  then delete this comment!
+function __range(min, max) {
+  let results = []
+  for (let i = min; i <= max; i++) {
+    results.push(i)
+  }
+  return results
+}
+
+/**
+* Helper: Clamp number between a min and max. Also handle NaN.
 */
+function __clamp(x, min, max) {
+  if (isNaN(min) || isNaN(max)) return x;
+  return Math.max(min, Math.min(max, x))
+}
+
 /**
  * `nega-paginator`
- * A paginator for Polymer.
- *
+ * A simple paginator web component.
+ * 
  * @customElement
- * @polymer
  * @demo demo/index.html
  */
-import { PolymerElement } from '@polymer/polymer/polymer-element.js';
-import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+class NegaPaginator extends LitElement {
+  static get properties() {
+    return {
+      page: {type: Number, reflect: true},
+      pageSize: {type: Number},
+      total: {type: Number},
+      pagePadding: {type: Number},
+    }
+  }
 
-class NegaPaginator extends PolymerElement {
-  static get template() {
+  constructor() {
+    super()
+    this.page = 1
+    this.pageSize = 10
+    this.pagePadding = 2
+  }
+  
+  render() {
+    // Cache computed
+    let previousPage = this.previousPage
+    let nextPage = this.nextPage
+    let lastPage = this.lastPage
+
+    let centroid = __clamp(this.page, 1 + this.pagePadding, lastPage - this.pagePadding)
+    let pageList = __range(Math.max(1, centroid - this.pagePadding), Math.min(lastPage, centroid + this.pagePadding))
+
     return html`
     <style>
       :host {
         display: block;
         user-select: none;
-
-        @apply --nega-paginator;
       }
 
-      paper-button {
-        height: 45px;
-        min-width: 50px;
+      button {
+        height: 46px;
+        width: 50px;
         vertical-align: top;
         border: #ccc 1px solid;
         background: white;
+        overflow: visible;
 
         @apply --nega-paginator-button;
       }
 
       .active {
         font-weight: bold;
+        border-color: #999;
 
         @apply --nega-paginator-active-button;
       }
+
+      [disabled] {
+        color: #ccc;
+        border: #ddd;
+
+        @apply --nega-paginator-disabled-button;
+      }
     </style>
     
-    <paper-button raised="" disabled="[[_computeDisabled(page, 1)]]" on-click="firstPage"><iron-icon icon="icons:first-page"></iron-icon></paper-button>
-    <paper-button raised="" disabled="[[_computeDisabled(page, _prevPage)]]" on-click="prevPage"><iron-icon icon="icons:chevron-left"></iron-icon></paper-button>
-    <paper-button raised="" hidden="[[_computeHidden(_pageList.0)]]" on-click="_handleChangePage" class\$="[[_computeClass(_pageList.0)]]">[[_pageList.0]]</paper-button>
-    <paper-button raised="" hidden="[[_computeHidden(_pageList.1)]]" on-click="_handleChangePage" class\$="[[_computeClass(_pageList.1)]]">[[_pageList.1]]</paper-button>
-    <paper-button raised="" hidden="[[_computeHidden(_pageList.2)]]" on-click="_handleChangePage" class\$="[[_computeClass(_pageList.2)]]">[[_pageList.2]]</paper-button>
-    <paper-button raised="" hidden="[[_computeHidden(_pageList.3)]]" on-click="_handleChangePage" class\$="[[_computeClass(_pageList.3)]]">[[_pageList.3]]</paper-button>
-    <paper-button raised="" hidden="[[_computeHidden(_pageList.4)]]" on-click="_handleChangePage" class\$="[[_computeClass(_pageList.4)]]">[[_pageList.4]]</paper-button>
-    <paper-button raised="" disabled="[[_computeDisabled(page, _nextPage)]]" on-click="nextPage"><iron-icon icon="icons:chevron-right"></iron-icon></paper-button>
-    <paper-button raised="" disabled="[[_computeDisabled(page, _maxPage)]]" on-click="lastPage"><iron-icon icon="icons:last-page"></iron-icon></paper-button>
-`;
+    <button ?disabled=${this._computeIsDisabled(this.page, 1)} @click=${_ => this.changePage(1)}>|&lt;</iron-icon></button>
+    <button ?disabled=${this._computeIsDisabled(this.page, previousPage)} @click=${_ => this.changePage(previousPage)}>&lt;</iron-icon></button>
+    ${pageList.map(page => html`
+      <button @click=${_ => this.changePage(page)} class=${this.page === page && 'active'}>${page}</button>
+    `)}
+    <button ?disabled=${this._computeIsDisabled(this.page, nextPage)} @click=${_ => this.changePage(nextPage)}>&gt;</iron-icon></button>
+    <button ?disabled=${this._computeIsDisabled(this.page, lastPage)} @click=${_ => this.changePage(lastPage)}>&gt;|</button>
+    `
   }
 
-  static get is() { return 'nega-paginator'; }
-  static get properties() {
-    return {
-      /**
-       * The current page.
-       */
-      page: {
-        type: Number,
-        value: 1,
-        notify: true,
-        reflectToAttribute: true
-      },
-
-      /**
-       * Items per page.
-       */
-      pageSize: {
-        type: Number,
-        value: 10
-      },
-
-      /**
-       * Total count of items to paginate.
-       */
-      total: {
-        type: Number,
-        value: NaN
-      },
-
-      _pageList: {
-        type: Array,
-        value: [1, 2, 3],
-
-        computed: '_computePageList(page, _maxPage)'
-      },
-      _prevPage: {
-        type: Number,
-        computed: '_computePrevPage(page, _maxPage)'
-      },
-      _nextPage: {
-        type: Number,
-        computed: '_computeNextPage(page, _maxPage)'
-      },
-      _maxPage: {
-        type: Number,
-        computed: '_computeMaxPage(page, pageSize, total)'
+  updated(changed) {
+    if (changed.has('page')) {
+      // Handle errors
+      let clampedPage = this.page && __clamp(this.page, 1, this.lastPage) || 1
+      if (this.page !== clampedPage) {
+        this.page = clampedPage
       }
     }
   }
 
-  /**
-  * Helper: Inclusive range array.
-  */
-  __range(min, max) {
-    let results = []
-    for (let i = min; i <= max; i++) {
-      results.push(i)
-    }
-    return results
+  get lastPage() {
+    return Math.ceil(this.total / this.pageSize)
   }
 
-  /**
-  * Helper: Clamp number between a min and max. Also handle NaN.
-  */
-  __clamp(x, min, max) {
-    if (isNaN(min) || isNaN(max)) return x;
-    return Math.max(min, Math.min(max, x))
+  get nextPage() {
+    return __clamp(this.page + 1, 1, this.lastPage)
   }
 
-  connectedCallback() {
-    super.connectedCallback()
-    this.page = this.__clamp(this.page, 1, this._maxPage) || 1
+  get previousPage() {
+    return __clamp(this.page - 1, 1, this.lastPage)
   }
 
-  _computePageList(page, maxPage) {
-    let n = this.__clamp(page, 3, maxPage - 2)
-    return this.__range(Math.max(1, n - 2), Math.min(maxPage, n + 2))
+  get value() {
+    return this.page;
   }
 
-  _computePrevPage(page, maxPage) {
-    return this.__clamp(page - 1, 1, maxPage)
+  set value(page) {
+    this.changePage(page)
   }
 
-  _computeNextPage(page, maxPage) {
-    return this.__clamp(page + 1, 1, maxPage)
-  }
-
-  _computeMaxPage(page, pageSize, total) {
-    return Math.ceil(total / pageSize)
-  }
-
-  _computeClass(page) {
-    return this.page === page && 'active'
-  }
-
-  _computeDisabled(page, checkPage) {
+  _computeIsDisabled(page, checkPage) {
     return isNaN(checkPage) || page === checkPage
   }
 
-  _computeHidden(page) {
-    return page === undefined
-  }
-
-  _handleChangePage(e) {
-    this.changePage(parseInt(e.currentTarget.innerText))
-  }
-
   changePage(page) {
-    let newPage = this.__clamp(page, 1, this._maxPage) || 1
-    this.page !== newPage && this.set('page', newPage)
-  }
-
-  firstPage() {
-    this.changePage(1)
-  }
-
-  nextPage() {
-    this.changePage(this.page + 1)
-  }
-
-  prevPage() {
-    this.changePage(Math.max(1, this.page - 1))
-  }
-
-  lastPage() {
-    this.changePage(Math.ceil(this.total / this.pageSize))
+    page = page && __clamp(page, 1, this.lastPage) || 1
+    if (this.page !== page) {
+      this.page = page
+  
+      this.dispatchEvent(new CustomEvent('change', {detail: {value: this.page}, composed: true, bubbles: true}))
+    }
   }
 }
-window.customElements.define(NegaPaginator.is, NegaPaginator);
+window.customElements.define('nega-paginator', NegaPaginator)

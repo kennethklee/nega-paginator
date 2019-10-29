@@ -9,27 +9,25 @@
   "version": "2.0.6",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "polymer serve --npm -H 0",
+    "test": "polymer test --npm",
+    "build:docs": "rm -r docs; polymer build --npm && mv build/default docs && touch docs/.nojekyll"
   },
   "author": "Kenneth Lee <kennethkl@gmail.com>",
   "bugs": {
     "url": "https://github.com/kennethklee/nega-paginator/issues"
   },
-  "resolutions": {
-    "inherits": "2.0.3",
-    "samsam": "1.1.3",
-    "supports-color": "3.1.2",
-    "type-detect": "1.0.0"
-  },
-  "license": "BSD-3-Clause",
+  "license": "ISC",
   "dependencies": {
-    "@polymer/polymer": "^3.0.0",
-    "@polymer/paper-button": "^3.0.0-pre.18",
-    "@polymer/iron-icons": "^3.0.0-pre.18"
+    "@webcomponents/webcomponentsjs": "^2.3.0",
+    "lit-element": "^2.2.1"
   },
   "devDependencies": {
-    "@polymer/iron-demo-helpers": "^3.0.0-pre.18",
-    "wct-browser-legacy": "^1.0.1",
-    "@webcomponents/webcomponentsjs": "^2.0.0"
+    "@polymer/iron-demo-helpers": "^3.1.0",
+    "@polymer/test-fixture": "^4.0.2",
+    "chai": "^4.2.0",
+    "mocha": "^6.2.2",
+    "polymer-cli": "^1.9.11",
+    "wct-mocha": "^1.0.1"
   }
 }
