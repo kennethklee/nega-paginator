@@ -121,10 +121,9 @@ class NegaPaginator extends LitElement {
 
   updated(changed) {
     if (changed.has('page')) {
-      // Handle errors
       let clampedPage = this.page && __clamp(this.page, 1, this.lastPage) || 1
       if (this.page !== clampedPage) {
-        this.page = clampedPage
+        this.page = clampedPage  // Handle errors
       }
     }
   }
