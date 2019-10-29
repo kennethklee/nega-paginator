@@ -1,0 +1,85 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>nega-paginator demo</title>
+
+    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+
+    <script type="module">import "../node_modules/@polymer/iron-demo-helpers/demo-pages-shared-styles.js";
+import "../node_modules/@polymer/iron-demo-helpers/demo-snippet.js";
+import '../nega-paginator.js';</script>
+
+    </head><custom-style>
+      <style is="custom-style" include="demo-pages-shared-styles">
+        .styled {
+          --nega-paginator-button: {
+            border-radius: 10px;
+            background: #000;
+            color: white;
+            border: none;
+            box-shadow: none;
+          }
+          --nega-paginator-active-button: {
+            background: #333;
+            box-shadow: 2px 2px 2px rgba(0,0,0,0.5);
+          }
+          --nega-paginator-disabled-button: {
+            background: transparent;
+          }
+        }
+
+        .minimal {
+          --nega-paginator-button: {
+            width: 28px;
+            height: 26px;
+          }
+        }
+      </style>
+    </custom-style>
+  
+  
+    <a href="https://kennethklee.github.io/nega-paginator/demo/">
+      <code>If you are viewing from webcomponents.org, the demo may not work due to incompatibilities with lit-html and the site. Click here to visit the working demo.</code>
+    </a>
+
+    <div class="vertical-section-container centered">
+      <h3>Basic nega-paginator demo</h3>
+      <demo-snippet>
+        <template>
+          <nega-paginator page="1" onchange="this.parentElement.getElementsByTagName('span')[0].innerText = event.detail.value"></nega-paginator>
+          <p>You are on page <span>1</span></p>
+        </template>
+      </demo-snippet>
+
+      <h3>Two pages demo</h3>
+      <demo-snippet>
+        <template>
+          <nega-paginator page="1" total="20"></nega-paginator>
+        </template>
+      </demo-snippet>
+
+      <h3>Ten pages demo</h3>
+      <demo-snippet>
+        <template>
+          <nega-paginator page="1" total="100"></nega-paginator>
+        </template>
+      </demo-snippet>
+
+      <h3>Styled demo</h3>
+      <demo-snippet>
+        <template>
+          <nega-paginator class="styled" page="1" total="100"></nega-paginator>
+        </template>
+      </demo-snippet>
+
+      <h3>Many pages demo</h3>
+      <demo-snippet>
+        <template>
+          <nega-paginator class="minimal" page="1" total="1000" pagepadding="5"></nega-paginator>
+        </template>
+      </demo-snippet>
+    </div>
+  
+
+</html>
